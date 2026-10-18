@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "string.h"
+#include "stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -26,7 +28,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define dht_port GPIOE
+#define dht_pin GPIO_PIN_5
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -43,7 +46,11 @@
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
-
+uint8_t RHI, RHD, TCI, TCD, SUM;
+uint32_t pMillis, cMillis;
+float tCelsius = 0;
+float RH = 0;
+char info[36] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
