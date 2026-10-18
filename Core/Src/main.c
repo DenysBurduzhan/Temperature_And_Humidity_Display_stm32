@@ -18,8 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "string.h"
 #include "stdio.h"
+#include "tm1637.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -63,7 +63,56 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void microDelay(uint16_t delay) {
+  __HAL_TIM_SET_COUNTER(&htim1, 0);
+  while (__HAL_TIM_GET_COUNTER(&htim1) < delay);
+}
 
+uint8_t dht11_init(void) {
+  uint8_t Response = 1;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  GPIO_InitStruct.Pin = dht_pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(dht_port, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(dht_port, dht_pin, 0);
+  HAL_Delay(20);
+  HAL_GPIO_WritePin(dht_port, dht_pin, 1);
+  microDelay(30);
+
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(dht_port, &GPIO_InitStruct);
+  microDelay(40);
+
+  if (!HAL_GPIO_ReadPin(dht_port, dht_pin)) {
+    microDelay(80);
+    if (HAL_GPIO_ReadPin(dht_port, dht_pin)) Response = 1;
+  }
+
+  pMillis = HAL_GetTick();
+
+  while (HAL_GPIO_ReadPin(dht_port, dht_pin) && (HAL_GetTick() - pMillis < 2));
+  return Response;
+}
+
+uint8_t dht11_read(void) {
+  uint8_t a, b = 0;
+  for (a = 0; a < 8; a++) {
+    pMillis = HAL_GetTick();
+
+    while (!HAL_GPIO_ReadPin(dht_port, dht_pin) && (HAL_GetTick() - pMillis < 2));
+    microDelay(40);
+
+    if (HAL_GPIO_ReadPin(dht_port, dht_pin))
+      b |= (1 << (7 - a));
+    while (HAL_GPIO_ReadPin(dht_port, dht_pin) && (HAL_GetTick() - pMillis < 2));
+  }
+  return b;
+}
 /* USER CODE END 0 */
 
 /**
@@ -97,6 +146,8 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start(&htim1);
+  TM1637_Init(GPIOD, GPIO_PIN_6, GPIOD, GPIO_PIN_4);
 
   /* USER CODE END 2 */
 
@@ -104,6 +155,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (dht11_init()) {
+	         RHI = dht11_read();
+	         RHD = dht11_read();
+	         TCI = dht11_read();
+	         TCD = dht11_read();
+	         SUM = dht11_read();
+
+
+	         if (RHI + RHD + TCI + TCD == SUM) {
+	             tCelsius = (float)TCI + (float)(TCD / 10.0);
+	             RH = (float)RHI + (float)(RHD / 10.0);
+	         }
+	     }
+
+	     TM1637_DisplayNumber((int16_t)tCelsius);
+	     HAL_Delay(1000);
+	     TM1637_DisplayNumber((int16_t)RH);
+	     HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -217,13 +286,13 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4|GPIO_PIN_6, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PE5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
@@ -232,12 +301,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA13 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_15;
+  /*Configure GPIO pins : PD4 PD6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

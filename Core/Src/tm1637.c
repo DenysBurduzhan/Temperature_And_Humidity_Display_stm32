@@ -96,7 +96,7 @@ void TM1637_Init(GPIO_TypeDef *clkPort, uint16_t clkPin, GPIO_TypeDef *dioPort, 
 
 
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
 
     GPIO_InitStruct.Pin = clkPin | dioPin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
