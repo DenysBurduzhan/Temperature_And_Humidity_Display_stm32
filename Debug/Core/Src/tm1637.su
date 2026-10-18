@@ -1,0 +1,11 @@
+../Core/Src/tm1637.c:28:6:TM1637_DelayUs	24	static
+../Core/Src/tm1637.c:34:6:TM1637_SetDIOOutput	32	static
+../Core/Src/tm1637.c:44:6:TM1637_SetDIOInput	32	static
+../Core/Src/tm1637.c:53:6:TM1637_Start	8	static
+../Core/Src/tm1637.c:64:6:TM1637_Stop	8	static
+../Core/Src/tm1637.c:74:6:TM1637_WriteByte	24	static
+../Core/Src/tm1637.c:91:6:TM1637_Init	48	static
+../Core/Src/tm1637.c:109:6:TM1637_SetBrightness	16	static
+../Core/Src/tm1637.c:116:6:TM1637_DisplayDigit	16	static
+../Core/Src/tm1637.c:128:6:TM1637_ClearDisplay	16	static
+../Core/Src/tm1637.c:142:6:TM1637_DisplayNumber	24	static
